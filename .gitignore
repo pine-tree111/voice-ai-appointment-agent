@@ -49,7 +49,7 @@ htmlcov/
 .dmypy.json
 dmypy.json
 
-# Environment variables & Secret Blacklist (agent-security.md §6)
+# Environment variables & Secret Blacklist
 .env
 .env.*
 !.env.example

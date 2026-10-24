@@ -52,6 +52,9 @@ select = [
     "RUF",   # ruff rules
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
