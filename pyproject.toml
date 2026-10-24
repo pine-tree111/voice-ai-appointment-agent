@@ -1,0 +1,74 @@
+[project]
+name = "voice-ai-appointment-agent"
+version = "0.1.0"
+description = "24/7 Autonomous Voice AI Receptionist using Vapi, FastAPI, Twilio, and Google Calendar"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+    "fastapi>=0.115.0,<1.0.0",
+    "uvicorn[standard]>=0.30.0,<1.0.0",
+    "pydantic>=2.8.0,<3.0.0",
+    "pydantic-settings>=2.4.0,<3.0.0",
+    "structlog>=24.4.0,<25.0.0",
+    "httpx>=0.27.0,<1.0.0",
+    "python-dateutil>=2.9.0,<3.0.0",
+    "tenacity>=9.0.0,<10.0.0",
+]
+
+[project.scripts]
+voice-agent = "app.main:run"
+simulate-call = "scripts.simulate_call:main"
+sync-assistant = "scripts.sync_vapi_assistant:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0,<9.0.0",
+    "pytest-cov>=5.0.0,<6.0.0",
+    "pytest-asyncio>=0.24.0,<1.0.0",
+    "mypy>=1.11.0,<2.0.0",
+    "types-python-dateutil>=2.9.0.20240316,<3.0.0.0",
+    "ruff>=0.6.0,<1.0.0",
+    "pip-audit>=2.7.0,<3.0.0",
+    "freezegun>=1.5.0,<2.0.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # bugbear
+    "SIM",   # simplify
+    "T20",   # no print() in business logic
+    "ASYNC", # async safety
+    "S",     # bandit security
+    "RUF",   # ruff rules
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unreachable = true
+disallow_any_generics = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short --cov=app --cov-branch --cov-fail-under=80"
+markers = [
+    "security: OWASP LLM and STRIDE penetration tests",
+    "synthetic: Synthetic voice call conversation tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
