@@ -32,9 +32,7 @@ class VapiFunctionCall(BaseModel):
             try:
                 return json.loads(v)
             except Exception as e:
-                raise ValueError(
-                    f"Malformed JSON in tool arguments: {e}"
-                ) from e
+                raise ValueError(f"Malformed JSON in tool arguments: {e}") from e
         return v
 
 
@@ -68,13 +66,12 @@ class VapiCallMetadata(BaseModel):
 
 class VapiWebhookMessage(BaseModel):
     """Inner message payload inside the inbound Vapi webhook."""
+
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
     type: str
     tool_calls: list[VapiToolCall] = Field(
         default_factory=list,
-        validation_alias=AliasChoices(
-            "toolCalls", "toolCallList", "tool_calls"
-        ),
+        validation_alias=AliasChoices("toolCalls", "toolCallList", "tool_calls"),
         serialization_alias="toolCalls",
     )
     call: VapiCallMetadata | None = None
@@ -90,6 +87,7 @@ class VapiWebhookPayload(BaseModel):
 
 class VapiToolResultItem(BaseModel):
     """A single tool execution response spoken back to the caller."""
+
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
     tool_call_id: str = Field(
         validation_alias=AliasChoices("toolCallId", "tool_call_id"),

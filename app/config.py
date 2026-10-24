@@ -61,9 +61,7 @@ class Settings(BaseSettings):
     )
     google_calendar_token: SecretStr = Field(
         default=SecretStr("mock-token"),
-        validation_alias=AliasChoices(
-            "GOOGLE_CALENDAR_TOKEN", "google_calendar_token"
-        ),
+        validation_alias=AliasChoices("GOOGLE_CALENDAR_TOKEN", "google_calendar_token"),
     )
     google_calendar_base_url: str = Field(
         default="https://www.googleapis.com/calendar/v3",
@@ -85,17 +83,13 @@ class Settings(BaseSettings):
         default=9,
         ge=0,
         le=23,
-        validation_alias=AliasChoices(
-            "BUSINESS_HOURS_START", "business_hours_start"
-        ),
+        validation_alias=AliasChoices("BUSINESS_HOURS_START", "business_hours_start"),
     )
     business_hours_end: int = Field(
         default=17,
         ge=0,
         le=23,
-        validation_alias=AliasChoices(
-            "BUSINESS_HOURS_END", "business_hours_end"
-        ),
+        validation_alias=AliasChoices("BUSINESS_HOURS_END", "business_hours_end"),
     )
     default_slot_duration_minutes: int = Field(
         default=30,
@@ -131,9 +125,7 @@ class Settings(BaseSettings):
             raise SSRFError(f"Invalid calendar URL scheme: {parsed.scheme}")
         hostname = (parsed.hostname or "").lower()
         if hostname in BLOCKED_HOSTS:
-            raise SSRFError(
-                f"SSRF attempt blocked: access to {hostname} is forbidden"
-            )
+            raise SSRFError(f"SSRF attempt blocked: access to {hostname} is forbidden")
         return v
 
 

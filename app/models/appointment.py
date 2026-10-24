@@ -53,12 +53,7 @@ class BookAppointmentInput(BaseModel):
     @classmethod
     def sanitize_name(cls, v: str) -> str:
         """Strip newlines, null bytes, and control characters (LLM02)."""
-        clean = (
-            v.replace("\n", " ")
-            .replace("\r", " ")
-            .replace("\0", "")
-            .strip()
-        )
+        clean = v.replace("\n", " ").replace("\r", " ").replace("\0", "").strip()
         if not clean:
             raise ValueError("Customer name cannot be empty")
         return clean

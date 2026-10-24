@@ -21,11 +21,7 @@ def sanitize_log_string(raw: str, max_length: int = 10_000) -> str:
     Strips null bytes, carriage returns, raw newlines, and ANSI escapes.
     """
     bounded = raw[:max_length]
-    normalized = (
-        bounded.replace("\0", "")
-        .replace("\r", " ")
-        .replace("\n", " ")
-    )
+    normalized = bounded.replace("\0", "").replace("\r", " ").replace("\n", " ")
     return _ANSI_ESCAPE_RE.sub("", normalized)
 
 

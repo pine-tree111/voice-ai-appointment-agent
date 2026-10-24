@@ -87,9 +87,7 @@ def test_calendar_url_ssrf_blocked_hosts(blocked_host: str) -> None:
 def test_calendar_url_invalid_scheme(scheme: str) -> None:
     """Verify SSRF validator rejects non-HTTP(S) schemes."""
     with pytest.raises(SSRFError, match="Invalid calendar URL scheme"):
-        Settings(
-            google_calendar_base_url=f"{scheme}://calendar.googleapis.com/v3"
-        )
+        Settings(google_calendar_base_url=f"{scheme}://calendar.googleapis.com/v3")
 
 
 def test_calendar_url_valid_https() -> None:
@@ -207,9 +205,7 @@ def test_vapi_function_call_malformed_json_fails() -> None:
 def test_vapi_function_call_unmapped_tool_fails_closed() -> None:
     """Verify unmapped tool name fails closed with ValidationError."""
     with pytest.raises(ValidationError):
-        VapiFunctionCall.model_validate(
-            {"name": "delete_all_events", "arguments": {}}
-        )
+        VapiFunctionCall.model_validate({"name": "delete_all_events", "arguments": {}})
 
 
 def test_vapi_webhook_payload_tool_calls_alias() -> None:
@@ -254,11 +250,7 @@ def test_vapi_tool_result_item_serialization() -> None:
 def test_vapi_webhook_response() -> None:
     """Verify VapiWebhookResponse encapsulates a list of result items."""
     resp = VapiWebhookResponse(
-        results=[
-            VapiToolResultItem(
-                tool_call_id="1", result="Appointment confirmed."
-            )
-        ]
+        results=[VapiToolResultItem(tool_call_id="1", result="Appointment confirmed.")]
     )
     assert len(resp.results) == 1
     assert resp.results[0].tool_call_id == "1"
