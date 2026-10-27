@@ -19,6 +19,7 @@
 - [Architecture & Data Flow](#architecture)
 - [Quickstart](#quickstart)
 - [CLI Caller Simulator](#cli-simulator)
+- [Live Inbound Phone Testing](#live-testing)
 - [Production Containerization](#containerization)
 - [Operating Cost Transparency](#cost)
 - [Quality Gates & Security Testing](#quality)
@@ -184,6 +185,35 @@ uv run simulate-call --scenario transfer
 
 ---
 
+<a id="live-testing"></a>
+## 📱 Live Inbound Phone Testing (via ngrok)
+
+Test live inbound voice calls from your personal cell phone into your local development server:
+
+1. **Start the local server**:
+   ```bash
+   make run
+   ```
+
+2. **Expose port 8000 via ngrok**:
+   ```bash
+   ngrok http 8000
+   ```
+
+3. **Configure Vapi Dashboard**:
+   - In your [Vapi Dashboard](https://dashboard.vapi.ai), navigate to your Assistant.
+   - Set **Server URL** to: `https://xxxx.ngrok-free.app/webhook/vapi`
+   - Set **Server Secret** to your `VAPI_SECRET_TOKEN` from `.env`.
+
+4. **Call the Agent**:
+   - Dial your assigned Vapi phone number from your mobile phone, or click the **"Talk to Assistant"** button in the Vapi dashboard.
+   - Speak naturally: *"Hi, I'd like to book an appointment for next Tuesday."*
+   - The AI will converse in real-time and book the slot directly onto Google Calendar.
+
+> **Security Note**: Never leave an ngrok tunnel open unattended. Terminate the tunnel (`Ctrl+C`) when testing completes.
+
+---
+
 <a id="containerization"></a>
 ## 🐳 Hardened Production Containerization
 
@@ -246,30 +276,6 @@ make pre-push
 - **STRIDE-D-003**: SSRF protection blocks private IP ranges and cloud metadata endpoints (`169.254.169.254`).
 - **STRIDE-E-001**: Unmapped tool calls fail closed immediately.
 - **STRIDE-E-002**: Host-enforced two-phase commit: appointments verified unoccupied immediately before insertion.
-
-<details>
-<summary>📱 Optional: Live Inbound Phone Testing via ngrok</summary>
-
-To test live inbound voice phone calls from your personal cell phone into your local workstation:
-
-1. Start your local server:
-   ```bash
-   make run
-   ```
-
-2. In a separate terminal, expose port 8000 via ngrok:
-   ```bash
-   ngrok http 8000
-   ```
-
-3. Copy your public ngrok URL (e.g. `https://xxxx.ngrok-free.app`) and configure it in your [Vapi Dashboard](https://dashboard.vapi.ai):
-   - Under **Server URL**, paste: `https://xxxx.ngrok-free.app/webhook/vapi`
-   - Under **Server Secret**, paste your `VAPI_SECRET_TOKEN` from `.env`
-
-4. Dial your Vapi demo phone number or use the Vapi Web Audio tester to speak with the agent live.
-
-> **Security Note**: Never leave an ngrok tunnel open unattended. Terminate the tunnel (`Ctrl+C`) when testing completes.
-</details>
 
 ---
 
