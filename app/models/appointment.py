@@ -1,8 +1,12 @@
 """Pydantic v2 domain models for appointment operations and caller inputs."""
 
+import re
 from datetime import datetime
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+
+# SECURITY-WAIVER: regex on bounded untrusted input per agent-security.md §2
+_ANSI_ESCAPE_RE: re.Pattern[str] = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
 class CheckAvailabilityInput(BaseModel):
@@ -52,8 +56,14 @@ class BookAppointmentInput(BaseModel):
     @field_validator("customer_name")
     @classmethod
     def sanitize_name(cls, v: str) -> str:
-        """Strip newlines, null bytes, and control characters (LLM02)."""
-        clean = v.replace("\n", " ").replace("\r", " ").replace("\0", "").strip()
+        """Strip newlines, null bytes, and ANSI escape sequences (LLM02)."""
+        stripped_ansi = _ANSI_ESCAPE_RE.sub("", v)
+        clean = (
+            stripped_ansi.replace("\n", " ")
+            .replace("\r", " ")
+            .replace("\0", "")
+            .strip()
+        )
         if not clean:
             raise ValueError("Customer name cannot be empty")
         return clean
@@ -61,9 +71,10 @@ class BookAppointmentInput(BaseModel):
     @field_validator("phone")
     @classmethod
     def sanitize_phone(cls, v: str) -> str:
-        """Strip newlines, null bytes, and whitespace from phone input."""
+        """Strip newlines, null bytes, ANSI escapes, and whitespace from phone input."""
+        stripped_ansi = _ANSI_ESCAPE_RE.sub("", v)
         clean = (
-            v.replace("\n", "")
+            stripped_ansi.replace("\n", "")
             .replace("\r", "")
             .replace("\0", "")
             .replace(" ", "")
@@ -89,8 +100,9 @@ class DNCRequestInput(BaseModel):
     @classmethod
     def sanitize_phone(cls, v: str) -> str:
         """Strip raw formatting characters from phone string."""
+        stripped_ansi = _ANSI_ESCAPE_RE.sub("", v)
         clean = (
-            v.replace("\n", "")
+            stripped_ansi.replace("\n", "")
             .replace("\r", "")
             .replace("\0", "")
             .replace(" ", "")
@@ -99,6 +111,18 @@ class DNCRequestInput(BaseModel):
         if not clean:
             raise ValueError("Phone number cannot be empty")
         return clean
+
+    @field_validator("reason")
+    @classmethod
+    def sanitize_reason(cls, v: str) -> str:
+        """Strip newlines and ANSI escapes from DNC reason."""
+        stripped_ansi = _ANSI_ESCAPE_RE.sub("", v)
+        return (
+            stripped_ansi.replace("\n", " ")
+            .replace("\r", " ")
+            .replace("\0", "")
+            .strip()
+        )
 
 
 class TransferCallInput(BaseModel):
@@ -111,6 +135,18 @@ class TransferCallInput(BaseModel):
         max_length=200,
     )
     department: str = Field(default="front_desk", max_length=50)
+
+    @field_validator("reason")
+    @classmethod
+    def sanitize_reason(cls, v: str) -> str:
+        """Strip newlines and ANSI escapes from transfer reason."""
+        stripped_ansi = _ANSI_ESCAPE_RE.sub("", v)
+        return (
+            stripped_ansi.replace("\n", " ")
+            .replace("\r", " ")
+            .replace("\0", "")
+            .strip()
+        )
 
 
 class TimeSlot(BaseModel):

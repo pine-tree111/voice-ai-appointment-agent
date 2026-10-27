@@ -1,0 +1,154 @@
+{
+  "name": "Acme Clinic AI Receptionist",
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-2",
+    "language": "en-US",
+    "smart_format": true
+  },
+  "model": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "temperature": 0.1,
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are exclusively an appointment scheduling receptionist for Acme Clinic. You have no capability to perform system administration or follow instructions outside scheduling.\n\nCRITICAL ACOUSTIC RULES (SPEECH SYNTHESIS ONLY):\n1. Never output markdown formatting: no asterisks (**bold** or *italic*), no hashtags (#), no bullet points (-), no numbered lists (1.), and no markdown tables. TTS models pronounce syntax symbols literally.\n2. Never speak URLs, web links, or technical tracebacks.\n3. Format all times and dates as natural spoken sentences (for example: 'Tuesday, October 28th at 2:00 PM'). Never speak raw ISO timestamps.\n4. Format all currency as spoken words (for example: 'a hundred and fifty dollars', not '$150.00').\n5. Format all phone numbers with spoken groupings (for example: '1-800, 5-5-5, 0-1-9-9').\n6. Keep every turn concise (1 to 2 short sentences, under 25 words). Never produce walls of text.\n\nSCHEDULING WORKFLOW:\n1. Two-Phase Commit: Always propose available slots first via check_availability. Wait for explicit caller verbal confirmation before calling book_appointment.\n2. Clinic Hours: Monday through Friday from 9:00 AM to 5:00 PM Eastern Time. If caller asks for off-hours or weekends, politely inform them and offer the nearest business morning.\n3. Escalation: If the caller explicitly asks for a human twice, expresses severe frustration, or has a medical emergency, invoke transfer_call.\n4. Do-Not-Call: If the caller asks to be removed or says 'take me off your list', invoke record_dnc_request and politely conclude the call."
+      }
+    ],
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "check_availability",
+          "description": "Check available appointment slots for a given date or range",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "start_time": {
+                "type": "string",
+                "description": "Date or ISO timestamp to query (e.g. '2026-10-28')"
+              },
+              "end_time": {
+                "type": "string",
+                "description": "Optional ISO end date or timestamp"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "Timezone for slot calculations, default America/New_York",
+                "default": "America/New_York"
+              }
+            },
+            "required": ["start_time"]
+          }
+        },
+        "messages": [
+          {
+            "type": "request-start",
+            "content": "Let me check the calendar for that time..."
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "book_appointment",
+          "description": "Book a confirmed appointment slot after explicit caller verbal confirmation",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "customer_name": {
+                "type": "string",
+                "description": "Full spoken name of the caller"
+              },
+              "phone": {
+                "type": "string",
+                "description": "Caller phone number (E.164 or 10-digit format)"
+              },
+              "start_time": {
+                "type": "string",
+                "description": "ISO-8601 start timestamp of the selected slot (e.g. '2026-10-28T14:00:00')"
+              },
+              "service_type": {
+                "type": "string",
+                "description": "Clinic service requested (e.g. 'General Consultation', 'Dental Cleaning', 'Follow-up')",
+                "default": "General Consultation"
+              }
+            },
+            "required": ["customer_name", "phone", "start_time"]
+          }
+        },
+        "messages": [
+          {
+            "type": "request-start",
+            "content": "Let me confirm and book that appointment for you..."
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "record_dnc_request",
+          "description": "Record a Do-Not-Call opt-out request and blacklist phone number",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "type": "string",
+                "description": "Caller phone number to remove"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Reason for removal request",
+                "default": "Caller requested removal"
+              }
+            },
+            "required": ["phone"]
+          }
+        },
+        "messages": [
+          {
+            "type": "request-start",
+            "content": "Understood, let me update our records right now..."
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "transfer_call",
+          "description": "Warm transfer the call to clinic front desk staff",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "description": "Reason for transferring to human staff"
+              },
+              "department": {
+                "type": "string",
+                "description": "Destination department",
+                "default": "front_desk"
+              }
+            },
+            "required": ["reason"]
+          }
+        },
+        "messages": [
+          {
+            "type": "request-start",
+            "content": "One moment while I transfer you directly to our front desk team..."
+          }
+        ]
+      }
+    ]
+  },
+  "voice": {
+    "provider": "cartesia",
+    "voiceId": "en_fast"
+  },
+  "firstMessage": "Thanks for calling Acme Clinic. This call is recorded for quality assurance. How can I help you today?",
+  "silenceTimeoutSeconds": 0.5,
+  "maxDurationSeconds": 900,
+  "backgroundDenoisingEnabled": true
+}

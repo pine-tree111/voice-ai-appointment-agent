@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import urlparse
 
-from pydantic import AliasChoices, Field, SecretStr, field_validator
+from pydantic import AliasChoices, Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.errors import SSRFError
@@ -116,17 +116,24 @@ class Settings(BaseSettings):
         ),
     )
 
-    @field_validator("google_calendar_base_url")
-    @classmethod
-    def validate_calendar_url(cls, v: str) -> str:
+    @model_validator(mode="after")
+    def validate_calendar_url(self) -> "Settings":
         """Validate calendar URL scheme and prevent SSRF to metadata endpoints."""
-        parsed = urlparse(v)
-        if parsed.scheme not in ("https", "http"):
-            raise SSRFError(f"Invalid calendar URL scheme: {parsed.scheme}")
+        parsed = urlparse(self.google_calendar_base_url)
+        allowed_schemes = {"https"}
+        if self.environment in ("test", "development"):
+            allowed_schemes.add("http")  # Local dev only
+        if parsed.scheme not in allowed_schemes:
+            raise SSRFError(
+                f"Invalid calendar URL scheme: {parsed.scheme}. "
+                f"Only {allowed_schemes} schemes permitted"
+            )
         hostname = (parsed.hostname or "").lower()
         if hostname in BLOCKED_HOSTS:
-            raise SSRFError(f"SSRF attempt blocked: access to {hostname} is forbidden")
-        return v
+            raise SSRFError(
+                f"SSRF attempt blocked: access to {hostname} is forbidden"
+            )
+        return self
 
 
 @lru_cache(maxsize=1)

@@ -1,5 +1,6 @@
 """Google Calendar API client for free/busy scheduling and appointment creation."""
 
+import ipaddress
 from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
@@ -88,13 +89,26 @@ class GoogleCalendarClient:
         )
 
     def _validate_base_url(self, url: str) -> str:
-        """Validate URL scheme and reject metadata IP endpoints."""
+        """Validate URL scheme and reject metadata and private/reserved IP endpoints."""
         parsed = urlparse(url)
         if parsed.scheme not in ("https", "http"):
             raise SSRFError(f"Invalid calendar URL scheme: {parsed.scheme}")
         hostname = (parsed.hostname or "").lower()
         if hostname in BLOCKED_HOSTS:
             raise SSRFError(f"SSRF attempt blocked: access to {hostname} is forbidden")
+        try:
+            addr = ipaddress.ip_address(hostname)
+            if (
+                addr.is_private
+                or addr.is_loopback
+                or addr.is_link_local
+                or addr.is_reserved
+            ):
+                raise SSRFError(
+                    f"Blocked: {hostname} is a private/reserved address"
+                )
+        except ValueError:
+            pass  # Not an IP literal; hostname already checked against BLOCKED_HOSTS
         return url.rstrip("/")
 
     @retry(
