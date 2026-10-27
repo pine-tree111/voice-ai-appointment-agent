@@ -130,9 +130,7 @@ class Settings(BaseSettings):
             )
         hostname = (parsed.hostname or "").lower()
         if hostname in BLOCKED_HOSTS:
-            raise SSRFError(
-                f"SSRF attempt blocked: access to {hostname} is forbidden"
-            )
+            raise SSRFError(f"SSRF attempt blocked: access to {hostname} is forbidden")
         return self
 
 

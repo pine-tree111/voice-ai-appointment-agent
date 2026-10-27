@@ -138,9 +138,7 @@ async def test_handle_check_availability_weekend(
         start_time="2026-10-31",
         timezone="America/New_York",
     )
-    response = await coord.handle_check_availability(
-        input_data, call_id="call_test_03"
-    )
+    response = await coord.handle_check_availability(input_data, call_id="call_test_03")
 
     assert "Monday through Friday from 9:00 AM to 5:00 PM" in response
     assert "Would you like to look at Monday morning?" in response
@@ -177,9 +175,7 @@ async def test_handle_check_availability_time_range_error(
         timezone="America/New_York",
     )
     with pytest.raises(TimeRangeError, match="must be strictly after"):
-        await coord.handle_check_availability(
-            input_inverted, call_id="call_err_01"
-        )
+        await coord.handle_check_availability(input_inverted, call_id="call_err_01")
 
     # Window exceeds max_query_days (14 days)
     input_excess = CheckAvailabilityInput(
@@ -188,9 +184,7 @@ async def test_handle_check_availability_time_range_error(
         timezone="America/New_York",
     )
     with pytest.raises(TimeRangeError, match="cannot exceed 14 days"):
-        await coord.handle_check_availability(
-            input_excess, call_id="call_err_02"
-        )
+        await coord.handle_check_availability(input_excess, call_id="call_err_02")
 
 
 async def test_handle_check_availability_calendar_timeout(
@@ -284,15 +278,11 @@ async def test_handle_book_appointment_idempotency_cache(
             service_type="General Consultation",
         )
 
-        resp1 = await coord.handle_book_appointment(
-            input_data, call_id="call_dup_01"
-        )
+        resp1 = await coord.handle_book_appointment(input_data, call_id="call_dup_01")
         assert event_calls == 1
 
         # Replayed request with same call_id and start_time
-        resp2 = await coord.handle_book_appointment(
-            input_data, call_id="call_dup_01"
-        )
+        resp2 = await coord.handle_book_appointment(input_data, call_id="call_dup_01")
         assert resp1 == resp2
         # Verify event creation was NOT called a second time
         assert event_calls == 1
@@ -356,9 +346,7 @@ async def test_handle_book_appointment_off_hours_and_weekend(
         start_time="2026-10-28T23:00:00",
         service_type="General Consultation",
     )
-    resp_late = await coord.handle_book_appointment(
-        input_late, call_id="call_late"
-    )
+    resp_late = await coord.handle_book_appointment(input_late, call_id="call_late")
     assert "Would you like to schedule during regular hours?" in resp_late
 
     # 2026-10-31 is Saturday
@@ -446,6 +434,7 @@ async def test_handle_dnc_request(test_settings: Settings) -> None:
         "Understood. I have removed this number from our list. Have a great day."
     )
 
+
 async def test_handle_transfer_call(test_settings: Settings) -> None:
     """Verify warm transfer logs audit event and returns transfer notice."""
     dummy_client = httpx.AsyncClient()
@@ -456,9 +445,7 @@ async def test_handle_transfer_call(test_settings: Settings) -> None:
         reason="Caller needs billing specialist",
         department="billing",
     )
-    result = await coord.handle_transfer_call(
-        input_data, call_id="call_transfer_01"
-    )
+    result = await coord.handle_transfer_call(input_data, call_id="call_transfer_01")
     assert result == "One moment while I transfer you directly to our front desk team."
 
 
@@ -481,9 +468,7 @@ async def test_handle_check_availability_malformed_dates(
     input_bad_end = CheckAvailabilityInput(
         start_time="2026-10-28T09:00:00", end_time="garbage-date"
     )
-    resp_end = await coord.handle_check_availability(
-        input_bad_end, call_id="bad_02"
-    )
+    resp_end = await coord.handle_check_availability(input_bad_end, call_id="bad_02")
     assert "trouble understanding the end time" in resp_end
 
 
@@ -497,9 +482,7 @@ async def test_handle_check_availability_after_hours_same_day(
 
     # 6:00 PM on Wednesday
     input_evening = CheckAvailabilityInput(start_time="2026-10-28T18:00:00")
-    resp = await coord.handle_check_availability(
-        input_evening, call_id="eve_01"
-    )
+    resp = await coord.handle_check_availability(input_evening, call_id="eve_01")
     assert "Would you like to check the next business day?" in resp
 
 
@@ -534,9 +517,7 @@ async def test_handle_check_availability_slot_counts(
         resp_single = await coord.handle_check_availability(
             input_single, call_id="single_slot"
         )
-        expected_single = (
-            "We have an opening on Wednesday, October 28th at 9:00 AM."
-        )
+        expected_single = "We have an opening on Wednesday, October 28th at 9:00 AM."
         assert expected_single in resp_single
         assert "Would you like me to book that?" in resp_single
 

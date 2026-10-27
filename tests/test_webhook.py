@@ -67,9 +67,7 @@ async def test_webhook_unauthorized_invalid_secret(
     headers = {"X-Vapi-Secret": "fraudulent-unauthorized-secret"}
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         payload = {"message": {"type": "tool-calls", "toolCalls": []}}
-        response = await client.post(
-            "/webhook/vapi", json=payload, headers=headers
-        )
+        response = await client.post("/webhook/vapi", json=payload, headers=headers)
         assert response.status_code == 401
         assert "Unauthorized" in response.json()["detail"]
 
@@ -87,9 +85,7 @@ async def test_webhook_lifecycle_event_ignored(
                 "call": {"id": "call_lifecycle_99"},
             }
         }
-        response = await client.post(
-            "/webhook/vapi", json=payload, headers=headers
-        )
+        response = await client.post("/webhook/vapi", json=payload, headers=headers)
         assert response.status_code == 200
         assert response.json() == {"results": []}
 
@@ -117,9 +113,7 @@ async def test_webhook_unmapped_tool_fails_closed(
                 "call": {"id": "call_adversarial_01"},
             }
         }
-        response = await client.post(
-            "/webhook/vapi", json=payload, headers=headers
-        )
+        response = await client.post("/webhook/vapi", json=payload, headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 1
@@ -144,9 +138,7 @@ async def test_webhook_check_availability_success(
 
     gcal_client = make_gcal_transport(gcal_handler)
     integration_app.state.http_client = gcal_client
-    calendar_client = GoogleCalendarClient.from_settings(
-        gcal_client, test_settings
-    )
+    calendar_client = GoogleCalendarClient.from_settings(gcal_client, test_settings)
     integration_app.state.booking_coordinator = BookingCoordinator(
         calendar_client, test_settings
     )
@@ -170,9 +162,7 @@ async def test_webhook_check_availability_success(
                 "call": {"id": "call_avail_01"},
             }
         }
-        response = await client.post(
-            "/webhook/vapi", json=payload, headers=headers
-        )
+        response = await client.post("/webhook/vapi", json=payload, headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 1
@@ -200,9 +190,7 @@ async def test_webhook_book_appointment_success(
 
     gcal_client = make_gcal_transport(gcal_handler)
     integration_app.state.http_client = gcal_client
-    calendar_client = GoogleCalendarClient.from_settings(
-        gcal_client, test_settings
-    )
+    calendar_client = GoogleCalendarClient.from_settings(gcal_client, test_settings)
     integration_app.state.booking_coordinator = BookingCoordinator(
         calendar_client, test_settings
     )
@@ -231,9 +219,7 @@ async def test_webhook_book_appointment_success(
                 "call": {"id": "call_book_01"},
             }
         }
-        response = await client.post(
-            "/webhook/vapi", json=payload, headers=headers
-        )
+        response = await client.post("/webhook/vapi", json=payload, headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 1
@@ -263,9 +249,7 @@ async def test_webhook_book_appointment_idempotent_replay(
 
     gcal_client = make_gcal_transport(gcal_handler)
     integration_app.state.http_client = gcal_client
-    calendar_client = GoogleCalendarClient.from_settings(
-        gcal_client, test_settings
-    )
+    calendar_client = GoogleCalendarClient.from_settings(gcal_client, test_settings)
     integration_app.state.booking_coordinator = BookingCoordinator(
         calendar_client, test_settings
     )
@@ -312,12 +296,8 @@ async def test_webhook_dnc_and_transfer_tools(
     test_settings: Settings,
 ) -> None:
     """Verify statutory DNC and warm transfer tool dispatches."""
-    dummy_gcal = make_gcal_transport(
-        lambda req: httpx.Response(200, json={})
-    )
-    calendar_client = GoogleCalendarClient.from_settings(
-        dummy_gcal, test_settings
-    )
+    dummy_gcal = make_gcal_transport(lambda req: httpx.Response(200, json={}))
+    calendar_client = GoogleCalendarClient.from_settings(dummy_gcal, test_settings)
     integration_app.state.booking_coordinator = BookingCoordinator(
         calendar_client, test_settings
     )
@@ -342,13 +322,9 @@ async def test_webhook_dnc_and_transfer_tools(
                 "call": {"id": "call_dnc"},
             }
         }
-        resp_dnc = await client.post(
-            "/webhook/vapi", json=payload_dnc, headers=headers
-        )
+        resp_dnc = await client.post("/webhook/vapi", json=payload_dnc, headers=headers)
         assert resp_dnc.status_code == 200
-        assert (
-            "removed this number" in resp_dnc.json()["results"][0]["result"]
-        )
+        assert "removed this number" in resp_dnc.json()["results"][0]["result"]
 
         # 2. Transfer request
         payload_transfer = {
@@ -371,10 +347,7 @@ async def test_webhook_dnc_and_transfer_tools(
             "/webhook/vapi", json=payload_transfer, headers=headers
         )
         assert resp_trans.status_code == 200
-        assert (
-            "transfer you directly"
-            in resp_trans.json()["results"][0]["result"]
-        )
+        assert "transfer you directly" in resp_trans.json()["results"][0]["result"]
 
 
 async def test_webhook_malformed_arguments_safe_envelope(
@@ -382,12 +355,8 @@ async def test_webhook_malformed_arguments_safe_envelope(
     test_settings: Settings,
 ) -> None:
     """Verify tool argument validation failure returns friendly voice fallback."""
-    dummy_gcal = make_gcal_transport(
-        lambda req: httpx.Response(200, json={})
-    )
-    calendar_client = GoogleCalendarClient.from_settings(
-        dummy_gcal, test_settings
-    )
+    dummy_gcal = make_gcal_transport(lambda req: httpx.Response(200, json={}))
+    calendar_client = GoogleCalendarClient.from_settings(dummy_gcal, test_settings)
     integration_app.state.booking_coordinator = BookingCoordinator(
         calendar_client, test_settings
     )
@@ -412,14 +381,11 @@ async def test_webhook_malformed_arguments_safe_envelope(
                 "call": {"id": "call_bad_args"},
             }
         }
-        response = await client.post(
-            "/webhook/vapi", json=payload, headers=headers
-        )
+        response = await client.post("/webhook/vapi", json=payload, headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 1
         assert data["results"][0]["toolCallId"] == "bad_args_tool"
         assert (
-            "trouble processing those booking details"
-            in data["results"][0]["result"]
+            "trouble processing those booking details" in data["results"][0]["result"]
         )

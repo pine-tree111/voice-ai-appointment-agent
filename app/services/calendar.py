@@ -104,9 +104,7 @@ class GoogleCalendarClient:
                 or addr.is_link_local
                 or addr.is_reserved
             ):
-                raise SSRFError(
-                    f"Blocked: {hostname} is a private/reserved address"
-                )
+                raise SSRFError(f"Blocked: {hostname} is a private/reserved address")
         except ValueError:
             pass  # Not an IP literal; hostname already checked against BLOCKED_HOSTS
         return url.rstrip("/")

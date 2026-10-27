@@ -140,8 +140,7 @@ def parse_args(args: Sequence[str] | None = None) -> argparse.Namespace:
         type=str,
         default=None,
         help=(
-            "Override target assistant ID (defaults to "
-            "VAPI_ASSISTANT_ID from settings)"
+            "Override target assistant ID (defaults to VAPI_ASSISTANT_ID from settings)"
         ),
     )
     return parser.parse_args(args)

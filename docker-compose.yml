@@ -1,0 +1,34 @@
+services:
+  voice-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: voice-agent:latest
+    container_name: voice-agent
+    read_only: true
+    user: "1001:1001"
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    env_file:
+      - path: .env
+        required: false
+    tmpfs:
+      - /tmp:size=64M,noexec,nosuid,nodev
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1024M
+          pids: 256
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

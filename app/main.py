@@ -21,6 +21,14 @@ logger = get_logger("app_main")
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage application startup and shutdown resource lifecycles."""
+    # Suppress core dumps to prevent secret leakage in crash dumps
+    try:
+        import resource
+
+        resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+    except (ImportError, ValueError, OSError, AttributeError):
+        pass  # Platform without resource.RLIMIT_CORE support
+
     configure_logging()
     settings = get_settings()
     logger.info(
@@ -48,10 +56,8 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS configuration (agent-security.md §8)
-    allowed_origins = (
-        ["*"] if settings.environment in ("development", "test") else []
-    )
+    # CORS configuration
+    allowed_origins = ["*"] if settings.environment in ("development", "test") else []
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
@@ -69,9 +75,7 @@ def create_app() -> FastAPI:
         logger.warning("webhook_auth_failed", error=str(exc))
         return JSONResponse(
             status_code=401,
-            content={
-                "detail": "Unauthorized: invalid or missing webhook secret"
-            },
+            content={"detail": "Unauthorized: invalid or missing webhook secret"},
         )
 
     @app.exception_handler(RequestValidationError)
@@ -81,8 +85,7 @@ def create_app() -> FastAPI:
         errors = exc.errors()
         # Unmapped tool names fail closed to friendly voice error
         is_unmapped_tool = any(
-            err.get("loc", ())[-1] == "name"
-            and "enum" in str(err.get("type", ""))
+            err.get("loc", ())[-1] == "name" and "enum" in str(err.get("type", ""))
             for err in errors
         )
         if is_unmapped_tool:
@@ -95,16 +98,10 @@ def create_app() -> FastAPI:
                     or raw_body.get("message", {}).get("toolCallList")
                     or []
                 )
-                if (
-                    calls
-                    and isinstance(calls, list)
-                    and isinstance(calls[0], dict)
-                ):
+                if calls and isinstance(calls, list) and isinstance(calls[0], dict):
                     tool_call_id = str(calls[0].get("id", "unknown"))
             except Exception as read_exc:
-                logger.debug(
-                    "failed_extracting_tool_call_id", error=str(read_exc)
-                )
+                logger.debug("failed_extracting_tool_call_id", error=str(read_exc))
 
             return JSONResponse(
                 status_code=200,
@@ -143,8 +140,8 @@ def run() -> None:
     settings = get_settings()
     uvicorn.run(
         "app.main:app",
-        # Required for containerized deployment ingress
-        host="0.0.0.0",  # noqa: S104
+        # Safe loopback binding for local CLI execution
+        host="127.0.0.1",
         port=8000,
         log_level=settings.log_level.lower(),
         reload=settings.environment == "development",

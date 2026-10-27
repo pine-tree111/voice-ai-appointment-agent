@@ -57,8 +57,8 @@ class BookingCoordinator:
         self._calendar = calendar_client
         self._settings = settings
         self._lock = asyncio.Lock()
-        self._idempotency_cache: cachetools.TTLCache[str, str] = (
-            cachetools.TTLCache(maxsize=4096, ttl=3600)
+        self._idempotency_cache: cachetools.TTLCache[str, str] = cachetools.TTLCache(
+            maxsize=4096, ttl=3600
         )
 
     def format_spoken_datetime(self, dt: datetime) -> str:

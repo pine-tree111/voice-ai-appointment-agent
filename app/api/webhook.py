@@ -32,9 +32,7 @@ router = APIRouter(prefix="/webhook", tags=["telephony"])
 
 async def verify_vapi_secret(
     settings: Annotated[Settings, Depends(get_settings)],
-    x_vapi_secret: Annotated[
-        str | None, Header(alias="X-Vapi-Secret")
-    ] = None,
+    x_vapi_secret: Annotated[str | None, Header(alias="X-Vapi-Secret")] = None,
 ) -> None:
     """Validate X-Vapi-Secret header using constant-time comparison.
 
@@ -65,9 +63,7 @@ def get_booking_coordinator(
 
     raw_client = getattr(request.app.state, "http_client", None)
     client = (
-        raw_client
-        if isinstance(raw_client, httpx.AsyncClient)
-        else httpx.AsyncClient()
+        raw_client if isinstance(raw_client, httpx.AsyncClient) else httpx.AsyncClient()
     )
 
     calendar_client = GoogleCalendarClient.from_settings(client, settings)
@@ -80,9 +76,7 @@ def get_booking_coordinator(
 async def handle_vapi_webhook(
     payload: VapiWebhookPayload,
     _auth: Annotated[None, Depends(verify_vapi_secret)],
-    coordinator: Annotated[
-        BookingCoordinator, Depends(get_booking_coordinator)
-    ],
+    coordinator: Annotated[BookingCoordinator, Depends(get_booking_coordinator)],
 ) -> VapiWebhookResponse:
     """Dispatch Vapi tool calls and return conversational speech responses.
 

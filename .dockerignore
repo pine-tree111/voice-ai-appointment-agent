@@ -1,0 +1,40 @@
+# Git & CI
+.git
+.github
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python Cache & Bytecode
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+.venv
+venv
+ENV
+
+# Testing & Coverage
+.pytest_cache
+.coverage
+htmlcov
+.tox
+coverage.xml
+tests
+
+# Tooling Caches
+.mypy_cache
+.ruff_cache
+
+# Documentation & Development Artifacts
+README.md
+task.md
+CONTEXT.md
+implementation_plan.md
+Makefile
+scripts/pre_push_check.sh

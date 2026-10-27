@@ -30,9 +30,9 @@ def assert_acoustic_invariants(spoken_text: str) -> None:
     """Assert spoken response contains strictly plain phonetic speech."""
     assert spoken_text, "Spoken text response cannot be empty"
     for token in FORBIDDEN_ACOUSTIC_TOKENS:
-        assert (
-            token not in spoken_text
-        ), f"Prohibited acoustic token '{token}' found in: {spoken_text}"
+        assert token not in spoken_text, (
+            f"Prohibited acoustic token '{token}' found in: {spoken_text}"
+        )
 
 
 def create_synthetic_wire_harness(
@@ -46,9 +46,7 @@ def create_synthetic_wire_harness(
         recorded_requests.append(request)
         return gcal_handler(request)
 
-    mock_client = httpx.AsyncClient(
-        transport=httpx.MockTransport(tracking_handler)
-    )
+    mock_client = httpx.AsyncClient(transport=httpx.MockTransport(tracking_handler))
     app.dependency_overrides[get_settings] = lambda: settings
     app.state.http_client = mock_client
     calendar_client = GoogleCalendarClient.from_settings(mock_client, settings)
